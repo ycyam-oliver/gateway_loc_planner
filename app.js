@@ -14,12 +14,13 @@ const ROOM_COLOURS = {
 };
 
 const LAAGVEEN_REGIONS = [
-  { id: "gestation-a", name: "Upper gestation A", semantic: "Gestation", x0: 278, x1: 427, y0: 13, y1: 241, widthM: 20.1, heightM: 40.0, clutter: 1 },
-  { id: "gestation-b", name: "Upper gestation B", semantic: "Gestation", x0: 349, x1: 425, y0: 254, y1: 483, widthM: 11.2, heightM: 40.0, clutter: 1 },
-  { id: "gestation-c", name: "Lower gestation", semantic: "Gestation", x0: 147, x1: 335, y0: 530, y1: 781, widthM: 22.6, heightM: 33.5, clutter: 1 },
-  { id: "insemination", name: "Insemination", semantic: "Insemination", x0: 347, x1: 445, y0: 530, y1: 781, widthM: 11.6, heightM: 33.5, clutter: 2 },
-  { id: "farrowing", name: "Farrowing", semantic: "Farrowing", x0: 623, x1: 858, y0: 530, y1: 781, widthM: 28.2, heightM: 33.5, clutter: 4 },
-  { id: "gilts", name: "Gilts", semantic: "Gilts", x0: 984, x1: 1120, y0: 530, y1: 781, widthM: 16.3, heightM: 33.5, clutter: 2 },
+  { id: "gestation-a", name: "Upper gestation A", semantic: "Gestation", sowCount: 144, x0: 278, x1: 427, y0: 13, y1: 241, widthM: 20.1, heightM: 40.0, clutter: 1 },
+  { id: "gestation-b", name: "Upper gestation B", semantic: "Gestation", sowCount: 72, x0: 349, x1: 425, y0: 254, y1: 483, widthM: 11.2, heightM: 40.0, clutter: 1 },
+  { id: "gestation-c", name: "Lower gestation A", semantic: "Gestation", sowCount: 240, x0: 147, x1: 335, y0: 530, y1: 781, widthM: 22.6, heightM: 33.5, clutter: 1 },
+  { id: "gestation-d", name: "Lower gestation B", semantic: "Gestation", sowCount: 60, x0: 147, x1: 335, y0: 781, y1: 835, widthM: 22.6, heightM: 6.9, clutter: 1 },
+  { id: "insemination", name: "Insemination", semantic: "Insemination", sowCount: 60, x0: 347, x1: 445, y0: 530, y1: 781, widthM: 11.6, heightM: 33.5, clutter: 2 },
+  { id: "farrowing", name: "Farrowing", semantic: "Farrowing", sowCount: 178, x0: 623, x1: 858, y0: 530, y1: 781, widthM: 28.2, heightM: 33.5, clutter: 4 },
+  { id: "gilts", name: "Gilts", semantic: "Gilts", sowCount: 300, x0: 984, x1: 1120, y0: 530, y1: 781, widthM: 16.3, heightM: 33.5, clutter: 2 },
 ];
 
 const LAAGVEEN_WALLS = [
@@ -56,7 +57,8 @@ const VAN_DUINHOVEN_WALLS = [
 const FARMS = {
   laagveen: {
     id: "laagveen", name: "Laagveen", data: window.OPTIMIZED_LAYOUT_DATA,
-    minGateways: 6, maxGateways: 25, pixelToMetre: 0.12,
+    minGateways: window.OPTIMIZED_LAYOUT_DATA?.minGatewayCount ?? 10,
+    maxGateways: window.OPTIMIZED_LAYOUT_DATA?.maxGatewayCount ?? 28, pixelToMetre: 0.12,
     regions: LAAGVEEN_REGIONS, walls: LAAGVEEN_WALLS,
     semantics: ["Gestation", "Insemination", "Farrowing", "Gilts"],
     coverageRects: [
