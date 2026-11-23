@@ -212,6 +212,8 @@ const elements = {
   outageBest: document.getElementById("outageBest"), roomTypeBest: document.getElementById("roomTypeBest"),
   oneAnchorComparison: document.getElementById("oneAnchorComparison"), outageComparison: document.getElementById("outageComparison"),
   roomTypeComparison: document.getElementById("roomTypeComparison"),
+  capacityMetricBlock: document.getElementById("capacityMetricBlock"), capacityLoadValue: document.getElementById("capacityLoadValue"),
+  capacityLoadStatus: document.getElementById("capacityLoadStatus"), capacityMetricHelp: document.getElementById("capacityMetricHelp"),
 };
 
 elements.gatewayLayer.before(elements.roomBoundaries, elements.walls, elements.focusLayer, elements.distanceLayer);
@@ -595,12 +597,17 @@ function renderGatewayMarkers() {
 
 function renderGatewayList() {
   elements.gatewayList.replaceChildren();
+  const regionGatewayCounts = activeGateways().reduce((counts, gateway) => {
+    counts[gateway.regionId] = (counts[gateway.regionId] || 0) + 1;
+    return counts;
+  }, {});
   for (const gateway of activeGateways()) {
     const region = regionById(gateway.regionId);
     const displayRegion = region?.name || gateway.region;
+    const assignedSows = region?.sowCount ? Math.round(region.sowCount / regionGatewayCounts[gateway.regionId]) : null;
     const row = document.createElement("div"); row.className = "gateway-item"; row.dataset.gatewayId = gateway.id;
     row.innerHTML = `<span class="gateway-id room-${gateway.semantic.toLowerCase()}">${gateway.id}</span>
-      <span class="gateway-copy"><strong>${displayRegion}</strong><span>Room grid: ${gateway.xM} m × ${gateway.yM} m${region?.sowCount ? ` · ${region.sowCount} sows` : ""}</span></span>
+      <span class="gateway-copy"><strong>${displayRegion}</strong><span>Room grid: ${gateway.xM} m × ${gateway.yM} m${assignedSows ? ` · ≈${assignedSows} sows assigned` : ""}</span></span>
       <span class="gateway-antenna">${gateway.antenna}</span>`;
     elements.gatewayList.appendChild(row);
   }
@@ -612,7 +619,8 @@ function bestMetrics() {
 }
 
 function updateRecommendation(count) {
-  const card = elements.recommendationCard, best = recommendedCount();
+  const card = elements.recommendationCard, best = recommendedCount(), score = currentLayout().metrics;
+  const capacity = farmData().capacityModel;
   card.classList.remove("optimal", "under", "over"); elements.recommendationTitle.textContent = `${best} gateways`;
   elements.currentGatewayTitle.textContent = `${count} gateways`;
   if (farm().geometryPending) {
@@ -622,12 +630,25 @@ function updateRecommendation(count) {
   }
   if (count < best) {
     const difference = best - count; card.classList.add("under");
-    elements.recommendationText.textContent = `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} below the best balance.`;
+    if (capacity && !score.capacityTargetMet) {
+      elements.recommendationText.textContent = `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} below the best balance and exceeds the ≈100-sow planning target.`;
+    } else if (capacity && !score.capacityOutageHardMet) {
+      elements.recommendationText.textContent = `The normal-load target is met, but this count cannot keep every room at or below 150 sows after one gateway outage.`;
+    } else if (capacity) {
+      elements.recommendationText.textContent = `Capacity targets are met, but the best modeled reception and outage plateau starts at ${best}.`;
+    } else {
+      elements.recommendationText.textContent = `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} below the best balance.`;
+    }
   } else if (count === best) {
-    card.classList.add("optimal"); elements.recommendationText.textContent = `${best} is the fewest count at the best modeled performance plateau.`;
+    card.classList.add("optimal");
+    elements.recommendationText.textContent = capacity
+      ? `${best} is the fewest count meeting the ≈100-sow target, 150-sow outage limit and best modeled performance plateau.`
+      : `${best} is the fewest count at the best modeled performance plateau.`;
   } else {
     const difference = count - best; card.classList.add("over");
-    elements.recommendationText.textContent = `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; the primary modeled metrics are already at their plateau.`;
+    elements.recommendationText.textContent = capacity
+      ? `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; capacity and primary modeled metrics already meet their targets.`
+      : `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; the primary modeled metrics are already at their plateau.`;
   }
 }
 
@@ -641,6 +662,23 @@ function updateDecision() {
   setMetric(elements.oneAnchorValue, elements.oneAnchorBest, elements.oneAnchorComparison, score.one, best.one);
   setMetric(elements.outageValue, elements.outageBest, elements.outageComparison, score.outage, best.outage);
   setMetric(elements.roomTypeValue, elements.roomTypeBest, elements.roomTypeComparison, score.roomOverall, best.room, 1);
+  const capacity = farmData().capacityModel;
+  elements.capacityMetricBlock.hidden = !capacity;
+  if (capacity) {
+    const load = Number(score.capacityLoad);
+    elements.capacityMetricBlock.classList.toggle("capacity-warning", load > capacity.targetSowsPerGateway && load <= capacity.maximumSowsPerGateway);
+    elements.capacityMetricBlock.classList.toggle("capacity-over", load > capacity.maximumSowsPerGateway);
+    elements.capacityLoadValue.textContent = `${load.toFixed(load % 1 ? 1 : 0)} sows`;
+    elements.capacityLoadStatus.textContent = load <= capacity.targetSowsPerGateway
+      ? `(≤ ${capacity.targetSowsPerGateway} target)`
+      : load <= capacity.maximumSowsPerGateway
+        ? `(> ${capacity.targetSowsPerGateway} target)`
+        : `(> ${capacity.maximumSowsPerGateway} limit)`;
+    const outageLoad = score.capacityOutageLoad;
+    elements.capacityMetricHelp.textContent = outageLoad == null
+      ? `Even room distribution. At least one room has no remaining gateway after a single local outage.`
+      : `Even room distribution. Worst load after one room gateway fails: ${Number(outageLoad).toFixed(Number(outageLoad) % 1 ? 1 : 0)} sows per gateway.`;
+  }
 }
 
 function updateOverlayControls() {
