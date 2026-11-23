@@ -17,7 +17,7 @@ const LAAGVEEN_REGIONS = [
   { id: "gestation-a", name: "Upper gestation A", semantic: "Gestation", sowCount: 144, x0: 278, x1: 427, y0: 13, y1: 241, widthM: 20.1, heightM: 40.0, clutter: 1 },
   { id: "gestation-b", name: "Upper gestation B", semantic: "Gestation", sowCount: 72, x0: 349, x1: 425, y0: 254, y1: 483, widthM: 11.2, heightM: 40.0, clutter: 1 },
   { id: "gestation-c", name: "Lower gestation A", semantic: "Gestation", sowCount: 240, x0: 147, x1: 335, y0: 530, y1: 781, widthM: 22.6, heightM: 33.5, clutter: 1 },
-  { id: "gestation-d", name: "Lower gestation B", semantic: "Gestation", sowCount: 60, x0: 147, x1: 335, y0: 781, y1: 835, widthM: 22.6, heightM: 6.9, clutter: 1 },
+  { id: "gestation-d", name: "Lower gestation B", semantic: "Gestation", sowCount: 60, x0: 190, x1: 335, y0: 781, y1: 835, widthM: 17.4, heightM: 6.9, clutter: 1 },
   { id: "insemination", name: "Insemination", semantic: "Insemination", sowCount: 60, x0: 347, x1: 445, y0: 530, y1: 781, widthM: 11.6, heightM: 33.5, clutter: 2 },
   { id: "farrowing", name: "Farrowing", semantic: "Farrowing", sowCount: 178, x0: 623, x1: 858, y0: 530, y1: 781, widthM: 28.2, heightM: 33.5, clutter: 4 },
   { id: "gilts", name: "Gilts", semantic: "Gilts", sowCount: 300, x0: 984, x1: 1120, y0: 530, y1: 781, widthM: 16.3, heightM: 33.5, clutter: 2 },
@@ -64,7 +64,8 @@ const FARMS = {
     coverageRects: [
       { x: 278, y: 13, width: 865, height: 228 },
       { x: 349, y: 254, width: 794, height: 229 },
-      { x: 147, y: 530, width: 973, height: 305 },
+      { x: 147, y: 530, width: 973, height: 251 },
+      { x: 190, y: 781, width: 890, height: 54 },
     ],
     badges: [
       { regionId: "gestation-a", x: 288, y: 27, width: 129, label: "GESTATION A" },
@@ -637,20 +638,20 @@ function updateRecommendation(count) {
     } else if (capacity && !score.capacityOutageHardMet) {
       elements.recommendationText.textContent = `The normal-load target is met, but this count cannot keep every room at or below 150 sows after one gateway outage.`;
     } else if (capacity) {
-      elements.recommendationText.textContent = `Capacity targets are met, but the best modeled reception and outage plateau starts at ${best}.`;
+      elements.recommendationText.textContent = `Capacity targets are met, but the best modeled performance–gateway balance starts at ${best}.`;
     } else {
       elements.recommendationText.textContent = `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} below the best balance.`;
     }
   } else if (count === best) {
     card.classList.add("optimal");
     elements.recommendationText.textContent = capacity
-      ? `${best} is the fewest count meeting the ≈100-sow target, 150-sow outage limit and best modeled performance plateau.`
-      : `${best} is the fewest count at the best modeled performance plateau.`;
+      ? `${best} is the fewest count meeting the capacity limits and the best modeled performance–gateway balance.`
+      : `${best} is the fewest count at the best modeled performance–gateway balance.`;
   } else {
     const difference = count - best; card.classList.add("over");
     elements.recommendationText.textContent = capacity
-      ? `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; capacity and primary modeled metrics already meet their targets.`
-      : `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; the primary modeled metrics are already at their plateau.`;
+      ? `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; the extra gateways do not improve the overall modeled balance.`
+      : `Current selection is ${difference} gateway${difference === 1 ? "" : "s"} above the best balance; the extra gateways do not improve the overall modeled balance.`;
   }
 }
 

@@ -15,14 +15,14 @@ Then open <http://127.0.0.1:4173>.
 
 ## Included farms
 
-- **Laagveen:** 10–28 gateways; the capacity-aware recommended performance–gateway balance is 23.
+- **Laagveen:** 10–32 gateways; the capacity-aware recommended performance–gateway balance is 22.
 - **van Duinhoven Oss:** 9–23 gateways; the capacity-aware recommended performance–gateway balance is 16. The five tagged rooms are named Gestation A, Gestation B, Insemination, Farrowing A and Farrowing B, following the Laagveen convention. Their printed sow counts (1,112 total) remain model metadata rather than room names.
 
 ## Laagveen capacity-aware optimization
 
-The annotated counts add up to 1,054 tagged sows: 144 in Upper Gestation A, 72 in Upper Gestation B, 240 in Lower Gestation A, 60 in the separately enclosed Lower Gestation B strip, 60 in Insemination, 178 in Farrowing and 300 in Gilts. The count drawing therefore resolves the green strip below the 240-sow room as a seventh physical tagged room rather than an untagged service area.
+The annotated counts add up to 1,054 tagged sows: 144 in Upper Gestation A, 72 in Upper Gestation B, 240 in Lower Gestation A, 60 in the separately enclosed Lower Gestation B strip, 60 in Insemination, 178 in Farrowing and 300 in Gilts. The count drawing therefore resolves the green strip below the 240-sow room as a seventh physical tagged room rather than an untagged service area. Its west edge begins about 5.2 m to the right of the 240-sow room's west wall, leaving the reviewed lower-left exterior notch and an L-shaped combined footprint.
 
-Every selectable count from 10 through 28 was independently re-optimized with the same engineering rule used for van Duinhoven Oss: a theoretical 150-sow limit, an approximately 100-sow normal target and even sow distribution within each physical room. The first complete capacity-and-performance plateau occurs at 23 gateways: 99% reception, 96.3% overall room-type identification and 95% reception after the single worst gateway outage. The allocation is three in Upper Gestation A, three in Upper Gestation B, four in Lower Gestation A, three in Lower Gestation B, two in Insemination, five in Farrowing and three in Gilts. Its busiest normal gateway carries 100 sows; after one local room gateway fails, the worst surviving load is 150.
+Every selectable count from 10 through 32 was independently re-optimized with the same engineering rule used for van Duinhoven Oss: a theoretical 150-sow limit, an approximately 100-sow normal target and even sow distribution within each physical room. The best capacity-compliant performance–gateway balance occurs at 22 gateways: 99% reception, 96.5% overall room-type identification and 95% reception after the single worst gateway outage. The allocation is three in Upper Gestation A, three in Upper Gestation B, four in Lower Gestation A, two in Lower Gestation B, two in Insemination, five in Farrowing and three in Gilts. Its busiest normal gateway carries 100 sows; after one local room gateway fails, the worst surviving load is 150. Counts above 22 keep normal reception at 99%; the highest-count layouts improve the outage metric modestly but use substantially more hardware and reduce room-identification accuracy.
 
 ## van Duinhoven Oss geometry and optimization status
 
