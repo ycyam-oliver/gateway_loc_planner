@@ -67,11 +67,15 @@ select:focus-visible,
 }
 
 .app-header h1 {
+  width: min(100%, 1680px);
+  margin-inline: auto;
   font-size: 1.08rem;
   letter-spacing: -0.015em;
 }
 
 .workspace {
+  width: min(100%, 1680px);
+  margin-inline: auto;
   padding: 14px clamp(12px, 1.7vw, 24px) 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(330px, 390px);
@@ -578,10 +582,6 @@ select:focus-visible,
 .control-panel {
   border-radius: 13px;
   overflow: hidden;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #b6c7c1 transparent;
 }
 
 .panel-section {
@@ -938,9 +938,8 @@ select {
 }
 
 .gateway-list {
-  max-height: 230px;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  max-height: none;
+  overflow: visible;
 }
 
 .gateway-item {
@@ -1057,13 +1056,38 @@ select {
   line-height: 1.35;
 }
 
-@media (max-width: 1120px) {
+@media (min-width: 1121px) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   .workspace {
-    grid-template-columns: 1fr;
+    height: calc(100vh - 50px);
+    height: calc(100dvh - 50px);
+    overflow: hidden;
+  }
+
+  .plan-frame {
+    width: min(100%, max(620px, calc(135vh - 250px)));
+    width: min(100%, max(620px, calc(135dvh - 250px)));
+    margin-inline: auto;
   }
 
   .control-panel {
-    max-height: none;
+    max-height: calc(100vh - 80px);
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+    scrollbar-color: #b6c7c1 transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 1120px) {
+  .workspace {
+    grid-template-columns: 1fr;
   }
 }
 
