@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive farm gateway placement and reception screening model.">
+  <title>D-Care gateway planner</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f7d59'/%3E%3Cpath d='M14 40h36M20 40V23m12 17V14m12 26V27' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>D-Care gateway planner</h1>
+  </header>
+
+  <main class="workspace">
+    <section class="plan-card" aria-labelledby="plan-title">
+      <div class="plan-heading">
+        <h2 id="plan-title">Laagveen floor plan</h2>
+        <div class="wall-summary" id="wallSummary">Main walls: assume 10 dB loss per crossing</div>
+      </div>
+
+      <div class="plan-frame" id="planFrame">
+        <svg id="mapBase" class="map-layer map-base" viewBox="0 0 1148 850" role="img" aria-label="Redrawn floor plan of the Laagveen farm">
+          <defs>
+            <pattern id="pen-grid" width="42" height="28" patternUnits="userSpaceOnUse">
+              <rect width="42" height="28" fill="#e8f2f4"></rect>
+              <path d="M 0 0 H 42 M 0 14 H 42 M 0 28 H 42 M 0 0 V 28 M 21 0 V 28 M 42 0 V 28" fill="none" stroke="#9ebac1" stroke-width="1"></path>
+              <path d="M 5 4 H 17 V 11 H 5 Z M 26 17 H 38 V 24 H 26 Z" fill="#d4e9ec" stroke="#89aab2" stroke-width="0.7"></path>
+            </pattern>
+            <pattern id="gestation-grid" width="54" height="34" patternUnits="userSpaceOnUse">
+              <rect width="54" height="34" fill="#d8f0a7"></rect>
+              <path d="M 0 0 H 54 M 0 17 H 54 M 0 34 H 54 M 0 0 V 34 M 27 0 V 34 M 54 0 V 34" fill="none" stroke="#8fb06c" stroke-width="1"></path>
+            </pattern>
+            <pattern id="farrowing-grid" width="45" height="32" patternUnits="userSpaceOnUse">
+              <rect width="45" height="32" fill="#c9ced1"></rect>
+              <path d="M 0 0 H 45 M 0 16 H 45 M 0 32 H 45 M 0 0 V 32 M 22.5 0 V 32 M 45 0 V 32" fill="none" stroke="#8b969b" stroke-width="1"></path>
+            </pattern>
+            <pattern id="corridor-hatch" width="8" height="8" patternUnits="userSpaceOnUse">
+              <rect width="8" height="8" fill="#faf7df"></rect>
+              <path d="M-2 8 L8 -2 M2 10 L10 2" fill="none" stroke="#c7bf92" stroke-width="1"></path>
+            </pattern>
+          </defs>
+
+          <rect width="1148" height="850" fill="#f7f9f9"></rect>
+
+          <path class="building-shell" d="M278 13 H1143 V483 H349 V254 H278 Z"></path>
+          <rect class="building-shell" x="147" y="530" width="973" height="251"></rect>
+          <path class="service-strip" d="M190 781 H1080 V835 H190 Z"></path>
+
+          <rect x="278" y="13" width="865" height="228" fill="url(#pen-grid)"></rect>
+          <rect x="349" y="254" width="794" height="229" fill="url(#pen-grid)"></rect>
+          <rect x="147" y="530" width="973" height="251" fill="url(#pen-grid)"></rect>
+
+          <rect class="aisle" x="278" y="112" width="865" height="22"></rect>
+          <rect class="aisle" x="349" y="353" width="794" height="22"></rect>
+          <rect class="aisle" x="147" y="651" width="973" height="22"></rect>
+
+          <rect class="target-area gestation" x="278" y="13" width="149" height="228" fill="url(#gestation-grid)"></rect>
+          <rect class="target-area gestation" x="349" y="254" width="76" height="229" fill="url(#gestation-grid)"></rect>
+          <rect class="target-area gestation" x="147" y="530" width="188" height="251" fill="url(#gestation-grid)"></rect>
+          <rect class="target-area insemination" x="347" y="530" width="98" height="251"></rect>
+          <rect class="target-area farrowing" x="623" y="530" width="235" height="251" fill="url(#farrowing-grid)"></rect>
+          <rect class="target-area gilts" x="984" y="530" width="136" height="251"></rect>
+
+          <g class="floor-labels" aria-hidden="true">
+            <text class="dimension" x="707" y="516">117 m</text>
+            <text class="dimension vertical" x="1135" y="662">33.5 m</text>
+            <text class="dimension vertical" x="263" y="134">40 m</text>
+          </g>
+          <g id="dynamicFarmBase"></g>
+        </svg>
+
+        <canvas id="coverageCanvas" class="map-layer heatmap" width="1148" height="850" aria-hidden="true"></canvas>
+
+        <svg id="mapOverlay" class="map-layer map-overlay" viewBox="0 0 1148 850" aria-label="Main walls and gateway positions">
+          <g id="roomBoundaryLayer" class="room-boundary-layer" aria-label="Tagged-room boundaries and names">
+            <g class="room-boundary-halos" aria-hidden="true">
+              <rect x="278" y="13" width="149" height="228"></rect>
+              <rect x="349" y="254" width="76" height="229"></rect>
+              <rect x="147" y="530" width="188" height="251"></rect>
+              <rect x="347" y="530" width="98" height="251"></rect>
+              <rect x="623" y="530" width="235" height="251"></rect>
+              <rect x="984" y="530" width="136" height="251"></rect>
+            </g>
+            <g class="room-boundary-lines" aria-hidden="true">
+              <rect x="278" y="13" width="149" height="228"></rect>
+              <rect x="349" y="254" width="76" height="229"></rect>
+              <rect x="147" y="530" width="188" height="251"></rect>
+              <rect x="347" y="530" width="98" height="251"></rect>
+              <rect x="623" y="530" width="235" height="251"></rect>
+              <rect x="984" y="530" width="136" height="251"></rect>
+            </g>
+            <g class="room-badges" aria-hidden="true">
+              <g class="room-badge gestation" transform="translate(288 27)">
+                <rect class="badge-bg" width="129" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">GESTATION A</text>
+              </g>
+              <g class="room-badge gestation" transform="translate(393 423) rotate(-90)">
+                <rect class="badge-bg" width="154" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">GESTATION B</text>
+              </g>
+              <g class="room-badge gestation" transform="translate(158 544)">
+                <rect class="badge-bg" width="166" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">GESTATION C</text>
+              </g>
+              <g class="room-badge insemination" transform="translate(413 753) rotate(-90)">
+                <rect class="badge-bg" width="195" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">INSEMINATION</text>
+              </g>
+              <g class="room-badge farrowing" transform="translate(642 544)">
+                <rect class="badge-bg" width="197" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">FARROWING</text>
+              </g>
+              <g class="room-badge gilts" transform="translate(994 544)">
+                <rect class="badge-bg" width="116" height="31" rx="7"></rect>
+                <rect class="badge-accent" width="8" height="31" rx="4"></rect>
+                <text x="19" y="21">GILTS</text>
+              </g>
+            </g>
+          </g>
+          <g id="mainWalls" class="main-walls" aria-label="Known main walls">
+            <line x1="278" y1="13" x2="1143" y2="13"></line>
+            <line x1="278" y1="13" x2="278" y2="530"></line>
+            <line x1="1143" y1="13" x2="1143" y2="483"></line>
+            <line x1="278" y1="254" x2="349" y2="254"></line>
+            <line x1="349" y1="254" x2="349" y2="483"></line>
+            <line x1="278" y1="483" x2="1143" y2="483"></line>
+            <line x1="365" y1="483" x2="365" y2="530"></line>
+            <line x1="393" y1="483" x2="393" y2="530"></line>
+            <line x1="707" y1="483" x2="707" y2="530"></line>
+            <line x1="725" y1="483" x2="725" y2="530"></line>
+            <line x1="789" y1="483" x2="789" y2="530"></line>
+            <line x1="147" y1="530" x2="1120" y2="530"></line>
+            <line x1="147" y1="530" x2="147" y2="781"></line>
+            <line x1="1120" y1="530" x2="1120" y2="781"></line>
+            <line x1="147" y1="781" x2="1120" y2="781"></line>
+            <line x1="190" y1="781" x2="190" y2="835"></line>
+            <line x1="1080" y1="781" x2="1080" y2="835"></line>
+            <line x1="190" y1="835" x2="1080" y2="835"></line>
+          </g>
+          <g id="focusDimLayer" class="focus-dim-layer" aria-hidden="true"></g>
+          <g id="gatewayDistanceLayer" class="gateway-distance-layer" aria-label="Gateway distances to nearest room boundaries"></g>
+          <g id="gatewayLayer" class="gateway-layer"></g>
+          <g id="gatewayDistanceLabelLayer" class="gateway-distance-label-layer" aria-label="Gateway distance labels"></g>
+        </svg>
+      </div>
+
+      <div class="map-legend" aria-label="Dominant signal and map legend">
+        <span class="legend-title">Dominant signal</span>
+        <div class="room-signal-key" data-semantic="Gestation"><span class="room-gradient gestation" aria-hidden="true"></span>Gestation</div>
+        <div class="room-signal-key" data-semantic="Insemination"><span class="room-gradient insemination" aria-hidden="true"></span>Insemination</div>
+        <div class="room-signal-key" data-semantic="Farrowing"><span class="room-gradient farrowing" aria-hidden="true"></span>Farrowing</div>
+        <div class="room-signal-key" data-semantic="Gilts"><span class="room-gradient gilts" aria-hidden="true"></span>Gilts</div>
+        <span class="legend-scale">Pale = weaker · muted = close contest</span>
+        <div class="legend-key"><span class="key-box room-boundary"></span>Tagged-room boundary</div>
+        <div class="legend-key"><span class="key-line distance"></span>Gateway distance</div>
+        <div class="legend-key"><span class="key-line wall"></span>Main wall</div>
+        <div class="legend-key"><span class="key-dot gateway"></span>Gateway</div>
+      </div>
+    </section>
+
+    <aside class="control-panel" aria-label="Planner controls and decision information">
+      <section class="panel-section settings-section">
+        <div class="field-heading farm-heading">
+          <label class="field-label" for="farmSelect">Farm</label>
+          <button type="button" class="text-button" id="resetButton">Reset</button>
+        </div>
+        <div class="select-wrap">
+          <select id="farmSelect" aria-label="Farm">
+            <option value="laagveen">Laagveen</option>
+            <option value="van-duinhoven-oss">van Duinhoven Oss</option>
+          </select>
+        </div>
+
+        <div class="gateway-count-row">
+          <label class="field-label" for="gatewayCount">
+            <span>Number of gateways</span>
+            <small id="gatewayRangeText">Choose 6–25</small>
+          </label>
+          <div class="stepper" aria-label="Select number of gateways">
+            <button type="button" id="decreaseGateway" aria-label="Remove one gateway">−</button>
+            <input id="gatewayCount" type="number" min="6" max="25" step="1" value="19" inputmode="numeric">
+            <button type="button" id="increaseGateway" aria-label="Add one gateway">+</button>
+          </div>
+        </div>
+
+        <div class="performance-region" aria-label="Gateway balance and performance">
+          <div class="performance-heading">
+            <strong>Modeled performance metrics</strong>
+          </div>
+          <div class="recommendation-card optimal" id="recommendationCard">
+            <div class="balance-main">
+              <div class="balance-current">
+                <span class="balance-kicker">Current selection</span>
+                <strong id="currentGatewayTitle">19 gateways</strong>
+              </div>
+              <div class="balance-best">
+                <span>Best balance</span>
+                <strong id="recommendationTitle">19 gateways</strong>
+              </div>
+            </div>
+            <p id="recommendationText">19 best balances reception, room identification and outage resilience.</p>
+          </div>
+
+          <div class="metric-grid" aria-label="Reception indicators">
+            <div class="metric-block">
+              <div class="metric-heading">
+                <span>Reception</span>
+                <span class="metric-value"><strong id="oneAnchorValue">98%</strong><small>(<span id="oneAnchorComparison">&lt;</span> best <span id="oneAnchorBest">99%</span>)</small></span>
+              </div>
+              <p id="receptionMetricHelp">Tagged areas expected to receive a usable signal from at least one gateway.</p>
+            </div>
+            <div class="metric-block">
+              <div class="metric-heading">
+                <span>Room-type identification</span>
+                <span class="metric-value"><strong id="roomTypeValue">96.2%</strong><small>(<span id="roomTypeComparison">&lt;</span> best <span id="roomTypeBest">96.4%</span>)</small></span>
+              </div>
+              <p>Overall modeled accuracy across tagged locations using the complete reception history from all gateways.</p>
+            </div>
+            <div class="metric-block">
+              <div class="metric-heading">
+                <span>After one outage</span>
+                <span class="metric-value"><strong id="outageValue">92%</strong><small>(<span id="outageComparison">&lt;</span> best <span id="outageBest">95%</span>)</small></span>
+              </div>
+              <p>Reception remaining after the single gateway whose failure causes the worst result.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-heading">Show on floor plan:</div>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showAllDistances" type="checkbox"><span></span>All gateway distances</label>
+          <label class="toggle"><input id="showCoverage" type="checkbox" checked><span></span>Signal heatmap</label>
+          <label class="toggle"><input id="showWalls" type="checkbox" checked><span></span>Main walls</label>
+          <label class="toggle"><input id="showRooms" type="checkbox" checked><span></span>Room outlines</label>
+        </div>
+
+        <label class="field-label slider-label" for="wallLoss">
+          <span>Main-wall loss</span>
+          <output id="wallLossValue" for="wallLoss">10 dB</output>
+        </label>
+        <input id="wallLoss" class="range" type="range" min="0" max="18" step="1" value="10">
+        <p class="field-help">Signal reduction for each red-wall crossing.</p>
+
+        <div class="gateway-list-heading">
+          <h3>Active gateways</h3>
+          <span id="activeGatewayCount">15</span>
+        </div>
+        <div class="gateway-list" id="gatewayList"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="optimized_layouts.js?v=20261123-layout-v19"></script>
+  <script src="van_duinhoven_oss_layouts.js?v=20261123-layout-v19"></script>
+  <script src="app.js?v=20261123-layout-v19"></script>
+</body>
+</html>
