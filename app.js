@@ -3,7 +3,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MAP_WIDTH = 1148;
 const MAP_HEIGHT = 850;
-const GATEWAY_HEIGHT_DELTA_M = 3.8;
+const DEFAULT_GATEWAY_HEIGHT_DELTA_M = 1.55;
 const DEFAULT_WALL_LOSS = 10;
 
 const ROOM_COLOURS = {
@@ -377,7 +377,8 @@ function countWallCrossings(x1, y1, x2, y2) {
 
 function signalDbm(x, y, gateway, wallLossDb) {
   const dx = (x - gateway.x) * farm().pixelToMetre, dy = (y - gateway.y) * farm().pixelToMetre;
-  const distanceM = Math.sqrt(dx * dx + dy * dy + GATEWAY_HEIGHT_DELTA_M ** 2);
+  const heightDeltaM = Number(farmData().mountingModel?.verticalSeparationM ?? DEFAULT_GATEWAY_HEIGHT_DELTA_M);
+  const distanceM = Math.sqrt(dx * dx + dy * dy + heightDeltaM ** 2);
   const localRegion = regionAt(x, y);
   return -36.5 - 22 * Math.log10(Math.max(distanceM, 1))
     - countWallCrossings(x, y, gateway.x, gateway.y) * wallLossDb - (localRegion ? localRegion.clutter : 1.5);
@@ -686,7 +687,9 @@ function updateDecision() {
 
 function updateOverlayControls() {
   const loss = Number(elements.wallLoss.value); elements.wallLossValue.textContent = `${loss} dB`;
-  elements.wallSummary.textContent = loss === 0 ? "Main-wall attenuation disabled" : `Main walls: assume ${loss} dB loss per crossing`;
+  const gatewayHeight = Number(farmData().mountingModel?.gatewayHeightM ?? 2.25);
+  const wallText = loss === 0 ? "Main-wall attenuation disabled" : `Main walls: assume ${loss} dB loss per crossing`;
+  elements.wallSummary.textContent = `Gateway height: assume ${gatewayHeight.toFixed(2).replace(/0$/, "")} m · ${wallText}`;
   elements.walls.style.opacity = elements.showWalls.checked ? "1" : "0"; elements.roomBoundaries.style.opacity = elements.showRooms.checked ? "1" : "0";
 }
 
